@@ -1,16 +1,16 @@
 package example.com.messageretrieve;
 
 import android.Manifest;
-import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,18 +25,29 @@ public class MainActivity extends AppCompatActivity {
             requestReadAndSendSmsPermission();
         }
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        TextView textViewSender = MainActivity.this.findViewById(R.id.textViewSender);
+        textViewSender.setText(sharedPreferences.getString("Sender", "Sender.."));
+
+        TextView textViewMessage = MainActivity.this.findViewById(R.id.textViewMessage);
+        textViewMessage.setText(sharedPreferences.getString("Message", "Receiver.."));
+
         SmsReceiver.bindListener(new SmsListener() {
             @Override
             public void messageReceived(String sender, String messageText) {
                 Log.e("Message", messageText);
 
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("Sender", sender);
+                editor.putString("Message", messageText);
+                editor.commit();
+
                 TextView textViewSender = MainActivity.this.findViewById(R.id.textViewSender);
-                textViewSender.setText(sender);
+                textViewSender.setText(sharedPreferences.getString("Sender", ""));
 
                 TextView textViewMessage = MainActivity.this.findViewById(R.id.textViewMessage);
-                textViewMessage.setText(messageText);
-
-//                Toast.makeText(MainActivity.this, "Message: " + messageText, Toast.LENGTH_LONG).show();
+                textViewMessage.setText(sharedPreferences.getString("Message", ""));
             }
         });
     }
